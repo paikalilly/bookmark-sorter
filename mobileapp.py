@@ -11,6 +11,44 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import LabelEncoder # Import new encoders
 from sklearn.preprocessing import MultiLabelBinarizer
+import requests
+import base64
+
+def push_to_github(file_path, repo_file_path):
+    token = st.secrets["GITHUB_TOKEN"]
+    repo = st.secrets["GITHUB_REPO"]
+    branch = st.secrets["GITHUB_BRANCH"]
+    username = st.secrets["GITHUB_USERNAME"]
+
+    with open(file_path, "rb") as f:
+        content = f.read()
+        encoded = base64.b64encode(content).decode("utf-8")
+
+    # Check if file exists (to get SHA)
+    get_url = f"https://api.github.com/repos/{repo}/contents/{repo_file_path}"
+    headers = {"Authorization": f"token {token}"}
+    r = requests.get(get_url, headers=headers)
+    if r.status_code == 200:
+        sha = r.json()["sha"]
+    else:
+        sha = None
+
+    data = {
+        "message": f"Update {repo_file_path} via Streamlit app",
+        "content": encoded,
+        "branch": branch
+    }
+    if sha:
+        data["sha"] = sha
+
+    res = requests.put(get_url, headers=headers, json=data)
+
+    if res.status_code in [200, 201]:
+        st.success(f"✅ Synced `{repo_file_path}` to GitHub.")
+    else:
+        st.error("❌ GitHub sync failed.")
+        st.error(res.json())
+
 
 # --- Page Config (set this once at the top) ---
 st.set_page_config(layout="centered")
@@ -351,9 +389,6 @@ with clear_tags_col:
         st.session_state[tags_clear_flag] = True
         st.rerun()
 
-# Now st.session_state[tags_key] and st.session_state[new_tag_key] are always up-to-date
-# The separate sync lines are no longer needed.
-
 # --- Merge old + new tags, dedupe, sort ---
 new_tags_list = [t.strip() for t in st.session_state[new_tag_key].split(",") if t.strip()]
 final_tags_list = sorted(list(set(st.session_state[tags_key] + new_tags_list)))
@@ -386,6 +421,8 @@ if st.button("Confirm & Save", use_container_width=True):
 
     df_remaining.to_csv(REMAINING_BOOKMARKS_FILE, index=False, sep=';')
     st.session_state['df_full'] = df_remaining
+    push_to_github(NEWLY_SORTED_DATA_FILE, NEWLY_SORTED_DATA_FILE)
+    push_to_github(REMAINING_BOOKMARKS_FILE, REMAINING_BOOKMARKS_FILE)
 
 
     # --- Model Update Logic ---
