@@ -50,7 +50,7 @@ def push_to_github(file_path, repo_file_path):
         st.error(res.json())
 
 
-# --- Page Config (set this once at the top) ---
+# --- Page Config ---
 st.set_page_config(layout="centered")
 
 # --- Style tweaks for mobile ---
@@ -75,15 +75,17 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+
 st.markdown("""
     <style>
     /* Override multiselect tag chip background */
     .stMultiSelect [data-baseweb="tag"] {
-        background-color: #e0f7fa !important;  /* Light teal example */
-        color: #006064 !important;             /* Darker text */
+        background-color: #e0f7fa !important;
+        color: #006064 !important;
     }
     </style>
 """, unsafe_allow_html=True)
+
 st.markdown("""
     <style>
     div[data-baseweb="select"] > div {
