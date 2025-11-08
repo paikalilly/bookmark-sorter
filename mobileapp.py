@@ -445,6 +445,9 @@ if st.button("Confirm & Save", use_container_width=True):
     for key in [note_key, folder_key, tags_key, new_folder_key, new_tag_key]:
         if key in st.session_state:
             del st.session_state[key]
+                # Clear the cached tag predictions so they're recalculated for the next item
+    if 'predicted_tags' in st.session_state:
+        del st.session_state['predicted_tags']
     st.rerun()
 
 if st.button("Delete", use_container_width=True):
@@ -481,6 +484,9 @@ if st.button("Delete", use_container_width=True):
     for key in [note_key, folder_key, tags_key, new_folder_key, new_tag_key]:
         if key in st.session_state:
             del st.session_state[key]
+                # Clear the cached tag predictions so they're recalculated for the next item
+    if 'predicted_tags' in st.session_state:
+        del st.session_state['predicted_tags']
     st.rerun()
 
 
@@ -512,3 +518,4 @@ retrain_button_label = f"🔁 Retrain Models ({st.session_state.new_items_staged
 if st.button(retrain_button_label, use_container_width=True):
     full_retrain_all_models(st.session_state.embedding_model)
     st.session_state.new_items_staged_for_retrain = 0
+
